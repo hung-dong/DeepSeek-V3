@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TroManager - Demo chạy local</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --surface: #ffffff;
+      --text: #172b4d;
+      --muted: #5e6c84;
+      --primary: #2563eb;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --border: #e5e7eb;
+      --radius: 14px;
+      --shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    aside { background: #0f172a; color: #e2e8f0; padding: 24px 16px; }
+    .brand { font-size: 18px; font-weight: 700; margin-bottom: 24px; }
+    .menu { display: grid; gap: 8px; }
+    .menu-item { padding: 10px 12px; border-radius: 10px; color: #cbd5e1; font-size: 14px; text-decoration: none; }
+    .menu-item.active { background: #1e293b; color: #fff; }
+
+    main { padding: 20px; display: grid; gap: 18px; }
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 12px 16px;
+    }
+    .topbar h1 { font-size: 20px; margin: 0; }
+    .btn {
+      border: none; border-radius: 10px; background: var(--primary); color: white;
+      padding: 10px 14px; font-weight: 600; cursor: pointer;
+    }
+    .btn.secondary { background: #334155; }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 14px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px;
+    }
+    .kpi-title { color: var(--muted); font-size: 13px; }
+    .kpi-value { font-size: 26px; margin-top: 8px; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+    .tag {
+      display: inline-block; padding: 4px 8px; border-radius: 999px;
+      font-size: 12px; font-weight: 600; color: #fff;
+    }
+    .ok { background: var(--success); }
+    .warn { background: var(--warning); }
+    .late { background: var(--danger); }
+    .form { display: grid; gap: 10px; margin-top: 12px; }
+    .form-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    input, select {
+      width: 100%; border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px; font-size: 14px;
+    }
+    .note { margin: 0; color: var(--muted); font-size: 13px; }
+    .space-top { margin-top: 16px; }
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; }
+      aside { display: none; }
+      .kpis { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+      .form-inline { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">🏠 TroManager</div>
+      <nav class="menu">
+        <a class="menu-item active" href="#">Tổng quan</a>
+        <a class="menu-item" href="#">Phòng</a>
+        <a class="menu-item" href="#">Người thuê</a>
+        <a class="menu-item" href="#">Điện nước</a>
+        <a class="menu-item" href="#">Hóa đơn</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="topbar">
+        <h1>TroManager - Demo local có thể dùng thử</h1>
+        <div>
+          <button id="seedBtn" class="btn secondary">Nạp dữ liệu mẫu</button>
+          <button id="clearBtn" class="btn">Xóa dữ liệu</button>
+        </div>
+      </section>
+
+      <section class="kpis">
+        <article class="card"><div class="kpi-title">Tổng số phòng</div><div id="kpiRooms" class="kpi-value">0</div></article>
+        <article class="card"><div class="kpi-title">Đang thuê</div><div id="kpiOccupied" class="kpi-value">0</div></article>
+        <article class="card"><div class="kpi-title">Doanh thu tháng này</div><div id="kpiRevenue" class="kpi-value">0đ</div></article>
+        <article class="card"><div class="kpi-title">Công nợ</div><div id="kpiDebt" class="kpi-value">0đ</div></article>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h3>Danh sách hóa đơn</h3>
+          <p class="note">Tự tạo hóa đơn bằng form bên phải, dữ liệu được lưu trên trình duyệt (localStorage).</p>
+          <table>
+            <thead>
+              <tr><th>Phòng</th><th>Tháng</th><th>Tổng tiền</th><th>Đã trả</th><th>Trạng thái</th></tr>
+            </thead>
+            <tbody id="invoiceRows"></tbody>
+          </table>
+        </article>
+
+        <article class="card">
+          <h3>Thêm phòng</h3>
+          <form id="roomForm" class="form">
+            <div class="form-inline">
+              <input name="code" placeholder="Mã phòng (VD: P101)" required />
+              <input type="number" name="rent" placeholder="Giá thuê" min="0" required />
+            </div>
+            <button type="submit" class="btn">+ Lưu phòng</button>
+          </form>
+
+          <h3 class="space-top">Tạo hóa đơn tháng</h3>
+          <form id="invoiceForm" class="form">
+            <select name="room" id="roomSelect" required></select>
+            <div class="form-inline">
+              <input type="month" name="month" required />
+              <input type="number" name="paid" placeholder="Đã thanh toán" value="0" min="0" />
+            </div>
+            <div class="form-inline">
+              <input type="number" name="electricKwh" placeholder="Điện tiêu thụ (kWh)" min="0" value="0" />
+              <input type="number" name="waterM3" placeholder="Nước tiêu thụ (m3)" min="0" value="0" />
+            </div>
+            <div class="form-inline">
+              <input type="number" name="service" placeholder="Phí dịch vụ" min="0" value="0" />
+              <input type="number" step="0.1" name="multiplier" placeholder="Hệ số giá phòng" value="1" min="0.5" />
+            </div>
+            <button type="submit" class="btn">Lưu & tính hóa đơn</button>
+          </form>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const ELECTRIC_PRICE = 3500;
+    const WATER_PRICE = 18000;
+    const KEY = "tro_manager_demo_v2";
+
+    const state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (!raw) return { rooms: [], invoices: [] };
+        return JSON.parse(raw);
+      } catch {
+        return { rooms: [], invoices: [] };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    }
+
+    function vnd(num) {
+      return Number(num || 0).toLocaleString("vi-VN") + "đ";
+    }
+
+    function getStatus(inv) {
+      if (inv.paid >= inv.total) return ["Đã thanh toán", "ok"];
+      if (inv.paid > 0) return ["Thanh toán 1 phần", "warn"];
+      return ["Chưa thanh toán", "late"];
+    }
+
+    function renderRoomOptions() {
+      const select = document.getElementById("roomSelect");
+      if (state.rooms.length === 0) {
+        select.innerHTML = `<option value="">(Chưa có phòng, hãy thêm phòng trước)</option>`;
+        return;
+      }
+      select.innerHTML = state.rooms.map(r => `<option value="${r.code}">${r.code} - ${vnd(r.rent)}</option>`).join("");
+    }
+
+    function renderInvoices() {
+      const rows = document.getElementById("invoiceRows");
+      if (state.invoices.length === 0) {
+        rows.innerHTML = `<tr><td colspan="5">Chưa có hóa đơn</td></tr>`;
+        return;
+      }
+      rows.innerHTML = state.invoices
+        .slice()
+        .sort((a, b) => b.month.localeCompare(a.month))
+        .map(inv => {
+          const [label, cls] = getStatus(inv);
+          return `<tr>
+            <td>${inv.room}</td>
+            <td>${inv.month}</td>
+            <td>${vnd(inv.total)}</td>
+            <td>${vnd(inv.paid)}</td>
+            <td><span class="tag ${cls}">${label}</span></td>
+          </tr>`;
+        })
+        .join("");
+    }
+
+    function renderKpis() {
+      const roomCount = state.rooms.length;
+      const occupied = roomCount;
+      const revenue = state.invoices.reduce((s, i) => s + i.paid, 0);
+      const debt = state.invoices.reduce((s, i) => s + Math.max(i.total - i.paid, 0), 0);
+      document.getElementById("kpiRooms").textContent = roomCount;
+      document.getElementById("kpiOccupied").textContent = occupied;
+      document.getElementById("kpiRevenue").textContent = vnd(revenue);
+      document.getElementById("kpiDebt").textContent = vnd(debt);
+    }
+
+    function renderAll() {
+      renderRoomOptions();
+      renderInvoices();
+      renderKpis();
+    }
+
+    document.getElementById("roomForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = new FormData(e.target);
+      const code = String(data.get("code") || "").trim().toUpperCase();
+      const rent = Number(data.get("rent") || 0);
+      if (!code || rent <= 0) return alert("Vui lòng nhập mã phòng và giá thuê hợp lệ.");
+      if (state.rooms.some(r => r.code === code)) return alert("Mã phòng đã tồn tại.");
+      state.rooms.push({ code, rent });
+      saveState();
+      e.target.reset();
+      renderAll();
+    });
+
+    document.getElementById("invoiceForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (state.rooms.length === 0) return alert("Hãy thêm phòng trước.");
+      const data = new FormData(e.target);
+      const room = String(data.get("room") || "");
+      const month = String(data.get("month") || "");
+      const paid = Number(data.get("paid") || 0);
+      const electricKwh = Number(data.get("electricKwh") || 0);
+      const waterM3 = Number(data.get("waterM3") || 0);
+      const service = Number(data.get("service") || 0);
+      const multiplier = Number(data.get("multiplier") || 1);
+      const roomInfo = state.rooms.find(r => r.code === room);
+      if (!roomInfo || !month) return alert("Thiếu thông tin hóa đơn.");
+
+      const rent = roomInfo.rent * multiplier;
+      const electricFee = electricKwh * ELECTRIC_PRICE;
+      const waterFee = waterM3 * WATER_PRICE;
+      const total = Math.round(rent + electricFee + waterFee + service);
+
+      state.invoices.push({ room, month, paid, total });
+      saveState();
+      renderAll();
+      e.target.reset();
+      document.querySelector("#invoiceForm input[name='multiplier']").value = "1";
+      document.querySelector("#invoiceForm input[name='paid']").value = "0";
+      document.querySelector("#invoiceForm input[name='electricKwh']").value = "0";
+      document.querySelector("#invoiceForm input[name='waterM3']").value = "0";
+      document.querySelector("#invoiceForm input[name='service']").value = "0";
+    });
+
+    document.getElementById("seedBtn").addEventListener("click", () => {
+      state.rooms = [
+        { code: "P101", rent: 3200000 },
+        { code: "P203", rent: 3000000 },
+        { code: "P305", rent: 3500000 }
+      ];
+      state.invoices = [
+        { room: "P101", month: "2026-02", total: 4200000, paid: 4200000 },
+        { room: "P203", month: "2026-02", total: 3980000, paid: 2000000 },
+        { room: "P305", month: "2026-02", total: 4560000, paid: 0 }
+      ];
+      saveState();
+      renderAll();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      if (!confirm("Xóa toàn bộ dữ liệu demo trên trình duyệt?")) return;
+      state.rooms = [];
+      state.invoices = [];
+      saveState();
+      renderAll();
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
