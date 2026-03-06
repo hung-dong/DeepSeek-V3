@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeepSeek-V3 Demo Pages</title>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; margin: 0; background: #f7f8fb; color: #111827; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 32px 16px; }
+    h1 { margin: 0 0 8px; }
+    p { color: #4b5563; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 20px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+    a.btn { display: inline-block; margin-top: 10px; text-decoration: none; background: #2563eb; color: #fff; padding: 10px 12px; border-radius: 8px; }
+    code { background: #eef2ff; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>📦 Danh sách trang demo</h1>
+    <p>Nếu bạn không thấy giao diện, hãy chạy local server và mở URL trong trình duyệt.</p>
+    <p>Lệnh nhanh: <code>python3 -m http.server 8000 --bind 0.0.0.0 --directory .</code></p>
+
+    <section class="grid">
+      <article class="card">
+        <h3>🛍️ Demo web bán hàng</h3>
+        <p>Shop demo đầy đủ tính năng: tìm kiếm, lọc, giỏ hàng, yêu thích, thanh toán, lịch sử đơn.</p>
+        <a class="btn" href="./trang-web-ban-hang-day-du.html">Mở demo bán hàng</a>
+      </article>
+      <article class="card">
+        <h3>🏠 Demo quản lý phòng trọ</h3>
+        <p>Demo giao diện quản lý phòng trọ đã có sẵn trước đó trong dự án.</p>
+        <a class="btn" href="./quan-ly-phong-tro-ui.html">Mở demo quản lý phòng trọ</a>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
