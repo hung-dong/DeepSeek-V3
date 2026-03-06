@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopVN - Demo trang web bán hàng đầy đủ tính năng</title>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --card: #fff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .header-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+    .brand {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .search-wrap {
+      display: flex;
+      gap: 8px;
+    }
+    input, select, button, textarea {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #fff;
+    }
+    input, textarea, select { width: 100%; }
+    button {
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+    button.secondary {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    button.danger { background: var(--danger); }
+    .stats {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      background: #eef2ff;
+      color: #3730a3;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr 360px;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .panel h3 { margin-top: 0; }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .product {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .product .thumb {
+      height: 130px;
+      background: linear-gradient(45deg, #e0e7ff, #dbeafe);
+      display: grid;
+      place-items: center;
+      font-size: 2rem;
+    }
+    .product .body {
+      padding: 12px;
+      display: grid;
+      gap: 6px;
+      flex: 1;
+    }
+    .price {
+      color: var(--success);
+      font-weight: 700;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .muted { color: var(--muted); font-size: .9rem; }
+
+    .cart-list, .order-list {
+      display: grid;
+      gap: 8px;
+      max-height: 260px;
+      overflow: auto;
+    }
+    .item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .tabs button.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .header-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container header-row">
+    <div class="brand">🛍️ ShopVN</div>
+    <div class="search-wrap">
+      <input id="searchInput" placeholder="Tìm sản phẩm..." />
+      <select id="sortSelect">
+        <option value="default">Sắp xếp mặc định</option>
+        <option value="priceAsc">Giá tăng dần</option>
+        <option value="priceDesc">Giá giảm dần</option>
+        <option value="ratingDesc">Đánh giá cao nhất</option>
+      </select>
+    </div>
+    <div class="stats">
+      <div class="pill" id="cartCount">Giỏ hàng: 0</div>
+      <div class="pill" id="wishlistCount">Yêu thích: 0</div>
+    </div>
+  </div>
+</header>
+
+<main class="container layout">
+  <aside class="panel">
+    <h3>Bộ lọc</h3>
+    <div class="form-grid">
+      <label>Danh mục
+        <select id="categoryFilter"></select>
+      </label>
+      <label>Giá tối đa
+        <input type="range" id="priceMax" min="50000" max="50000000" step="50000" value="50000000" />
+      </label>
+      <div class="muted" id="priceLabel"><= 50.000.000đ</div>
+      <label>Đánh giá tối thiểu
+        <select id="ratingFilter">
+          <option value="0">Tất cả</option>
+          <option value="3">Từ 3★</option>
+          <option value="4">Từ 4★</option>
+          <option value="4.5">Từ 4.5★</option>
+        </select>
+      </label>
+    </div>
+
+    <hr/>
+    <h3>Quản trị sản phẩm</h3>
+    <div class="form-grid">
+      <input id="newName" placeholder="Tên sản phẩm" />
+      <input id="newCategory" placeholder="Danh mục" />
+      <input id="newPrice" type="number" placeholder="Giá" />
+      <input id="newRating" type="number" min="1" max="5" step="0.1" placeholder="Đánh giá (1-5)" />
+      <button id="addProductBtn">+ Thêm sản phẩm</button>
+    </div>
+  </aside>
+
+  <section class="panel">
+    <div class="tabs">
+      <button id="tabProducts" class="active">Sản phẩm</button>
+      <button id="tabWishlist" class="secondary">Yêu thích</button>
+      <button id="tabOrders" class="secondary">Lịch sử đơn hàng</button>
+    </div>
+
+    <div id="productsView" class="product-grid"></div>
+    <div id="wishlistView" class="hidden"></div>
+    <div id="ordersView" class="hidden order-list"></div>
+  </section>
+
+  <aside class="panel">
+    <h3>Giỏ hàng</h3>
+    <div id="cartView" class="cart-list"></div>
+    <hr/>
+    <div class="row"><strong>Tạm tính</strong><strong id="subtotal">0đ</strong></div>
+    <div class="row"><span>Phí vận chuyển</span><span id="shipping">30.000đ</span></div>
+    <div class="row"><strong>Tổng cộng</strong><strong id="total">0đ</strong></div>
+
+    <hr/>
+    <h3>Thanh toán</h3>
+    <div class="form-grid">
+      <input id="customerName" placeholder="Họ tên" />
+      <input id="customerPhone" placeholder="Số điện thoại" />
+      <textarea id="customerAddress" placeholder="Địa chỉ"></textarea>
+      <select id="paymentMethod">
+        <option>COD</option>
+        <option>Chuyển khoản</option>
+        <option>Ví điện tử</option>
+      </select>
+      <button id="checkoutBtn">Đặt hàng</button>
+      <button class="danger" id="clearCartBtn">Xóa giỏ hàng</button>
+    </div>
+  </aside>
+</main>
+
+<script>
+  const money = n => n.toLocaleString('vi-VN') + 'đ';
+  const storage = {
+    get: (k, d) => JSON.parse(localStorage.getItem(k) || JSON.stringify(d)),
+    set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
+  };
+
+  let products = storage.get('products', [
+    { id: 1, name: 'Điện thoại X Pro', category: 'Điện thoại', price: 18990000, rating: 4.7, icon: '📱' },
+    { id: 2, name: 'Laptop Air 14', category: 'Laptop', price: 24990000, rating: 4.8, icon: '💻' },
+    { id: 3, name: 'Tai nghe Noise Cancel', category: 'Phụ kiện', price: 2890000, rating: 4.5, icon: '🎧' },
+    { id: 4, name: 'Đồng hồ Smart Fit', category: 'Đồng hồ', price: 3990000, rating: 4.4, icon: '⌚' },
+    { id: 5, name: 'Camera Home 360', category: 'Nhà thông minh', price: 1590000, rating: 4.3, icon: '📷' },
+    { id: 6, name: 'Máy lọc không khí', category: 'Gia dụng', price: 5290000, rating: 4.6, icon: '🌬️' }
+  ]);
+  let cart = storage.get('cart', []);
+  let wishlist = storage.get('wishlist', []);
+  let orders = storage.get('orders', []);
+
+  const els = Object.fromEntries([...document.querySelectorAll('[id]')].map(e => [e.id, e]));
+
+  function saveAll() {
+    storage.set('products', products);
+    storage.set('cart', cart);
+    storage.set('wishlist', wishlist);
+    storage.set('orders', orders);
+  }
+
+  function getFilters() {
+    return {
+      q: els.searchInput.value.toLowerCase().trim(),
+      category: els.categoryFilter.value,
+      maxPrice: Number(els.priceMax.value),
+      minRating: Number(els.ratingFilter.value),
+      sort: els.sortSelect.value
+    };
+  }
+
+  function filteredProducts() {
+    const f = getFilters();
+    let p = products.filter(x =>
+      x.name.toLowerCase().includes(f.q) &&
+      (f.category === 'all' || x.category === f.category) &&
+      x.price <= f.maxPrice &&
+      x.rating >= f.minRating
+    );
+    if (f.sort === 'priceAsc') p.sort((a,b)=>a.price-b.price);
+    if (f.sort === 'priceDesc') p.sort((a,b)=>b.price-a.price);
+    if (f.sort === 'ratingDesc') p.sort((a,b)=>b.rating-a.rating);
+    return p;
+  }
+
+  function renderCategories() {
+    const cats = ['all', ...new Set(products.map(x => x.category))];
+    const current = els.categoryFilter.value || 'all';
+    els.categoryFilter.innerHTML = cats
+      .map(c => `<option value="${c}">${c === 'all' ? 'Tất cả' : c}</option>`).join('');
+    els.categoryFilter.value = cats.includes(current) ? current : 'all';
+  }
+
+  function renderProducts() {
+    const list = filteredProducts();
+    els.productsView.innerHTML = list.map(p => `
+      <article class="product">
+        <div class="thumb">${p.icon || '🛒'}</div>
+        <div class="body">
+          <strong>${p.name}</strong>
+          <div class="muted">${p.category} • ${p.rating}★</div>
+          <div class="price">${money(p.price)}</div>
+          <div class="row">
+            <button onclick="addToCart(${p.id})">+ Giỏ</button>
+            <button class="secondary" onclick="toggleWishlist(${p.id})">${wishlist.includes(p.id) ? '♥ Bỏ thích' : '♡ Yêu thích'}</button>
+          </div>
+          <button class="danger" onclick="deleteProduct(${p.id})">Xóa SP</button>
+        </div>
+      </article>
+    `).join('') || '<p>Không có sản phẩm phù hợp.</p>';
+  }
+
+  function renderCart() {
+    els.cartView.innerHTML = cart.map(c => {
+      const p = products.find(x => x.id === c.id);
+      if (!p) return '';
+      return `<div class="item">
+        <div><strong>${p.name}</strong></div>
+        <div class="muted">${money(p.price)} x ${c.qty}</div>
+        <div class="row">
+          <div>
+            <button class="secondary" onclick="changeQty(${p.id}, -1)">-</button>
+            <button class="secondary" onclick="changeQty(${p.id}, 1)">+</button>
+          </div>
+          <button class="danger" onclick="removeFromCart(${p.id})">Xóa</button>
+        </div>
+      </div>`;
+    }).join('') || '<p class="muted">Giỏ hàng trống.</p>';
+
+    const subtotal = cart.reduce((sum, c) => {
+      const p = products.find(x => x.id === c.id);
+      return sum + (p ? p.price * c.qty : 0);
+    }, 0);
+    const shipping = subtotal > 0 ? 30000 : 0;
+    const total = subtotal + shipping;
+
+    els.subtotal.textContent = money(subtotal);
+    els.shipping.textContent = money(shipping);
+    els.total.textContent = money(total);
+    els.cartCount.textContent = `Giỏ hàng: ${cart.reduce((s, i) => s + i.qty, 0)}`;
+  }
+
+  function renderWishlist() {
+    const list = products.filter(p => wishlist.includes(p.id));
+    els.wishlistView.innerHTML = list.map(p => `
+      <div class="item">
+        <div class="row">
+          <strong>${p.name}</strong>
+          <span class="price">${money(p.price)}</span>
+        </div>
+        <div class="row">
+          <span class="muted">${p.category} • ${p.rating}★</span>
+          <button class="secondary" onclick="toggleWishlist(${p.id})">Bỏ thích</button>
+        </div>
+      </div>
+    `).join('') || '<p class="muted">Chưa có sản phẩm yêu thích.</p>';
+    els.wishlistCount.textContent = `Yêu thích: ${wishlist.length}`;
+  }
+
+  function renderOrders() {
+    els.ordersView.innerHTML = [...orders].reverse().map(o => `
+      <div class="item">
+        <strong>Mã đơn #${o.id}</strong>
+        <div class="muted">${new Date(o.createdAt).toLocaleString('vi-VN')} • ${o.paymentMethod}</div>
+        <div>${o.customerName} - ${o.customerPhone}</div>
+        <div class="muted">${o.customerAddress}</div>
+        <div>SL: ${o.items.reduce((s,i)=>s+i.qty,0)} | Tổng: <span class="price">${money(o.total)}</span></div>
+      </div>
+    `).join('') || '<p class="muted">Chưa có đơn hàng nào.</p>';
+  }
+
+  function rerender() {
+    renderCategories();
+    renderProducts();
+    renderCart();
+    renderWishlist();
+    renderOrders();
+    els.priceLabel.textContent = `<= ${money(Number(els.priceMax.value))}`;
+    saveAll();
+  }
+
+  function addToCart(id) {
+    const found = cart.find(x => x.id === id);
+    found ? found.qty++ : cart.push({ id, qty: 1 });
+    rerender();
+  }
+
+  function removeFromCart(id) {
+    cart = cart.filter(x => x.id !== id);
+    rerender();
+  }
+
+  function changeQty(id, delta) {
+    const item = cart.find(x => x.id === id);
+    if (!item) return;
+    item.qty += delta;
+    if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
+    rerender();
+  }
+
+  function toggleWishlist(id) {
+    wishlist.includes(id)
+      ? wishlist = wishlist.filter(x => x !== id)
+      : wishlist.push(id);
+    rerender();
+  }
+
+  function deleteProduct(id) {
+    products = products.filter(p => p.id !== id);
+    cart = cart.filter(c => c.id !== id);
+    wishlist = wishlist.filter(w => w !== id);
+    rerender();
+  }
+
+  function addProduct() {
+    const name = els.newName.value.trim();
+    const category = els.newCategory.value.trim();
+    const price = Number(els.newPrice.value);
+    const rating = Number(els.newRating.value || 4);
+
+    if (!name || !category || !price) {
+      alert('Vui lòng nhập đủ tên, danh mục và giá.');
+      return;
+    }
+    const id = Math.max(0, ...products.map(p => p.id)) + 1;
+    products.push({ id, name, category, price, rating, icon: '🛒' });
+    ['newName','newCategory','newPrice','newRating'].forEach(k => els[k].value = '');
+    rerender();
+  }
+
+  function checkout() {
+    const customerName = els.customerName.value.trim();
+    const customerPhone = els.customerPhone.value.trim();
+    const customerAddress = els.customerAddress.value.trim();
+    const paymentMethod = els.paymentMethod.value;
+
+    if (!cart.length) return alert('Giỏ hàng đang trống.');
+    if (!customerName || !customerPhone || !customerAddress) {
+      return alert('Vui lòng nhập đầy đủ thông tin nhận hàng.');
+    }
+
+    const subtotal = cart.reduce((sum, c) => {
+      const p = products.find(x => x.id === c.id);
+      return sum + (p ? p.price * c.qty : 0);
+    }, 0);
+    const total = subtotal + 30000;
+
+    orders.push({
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      customerName,
+      customerPhone,
+      customerAddress,
+      paymentMethod,
+      items: structuredClone(cart),
+      total
+    });
+
+    cart = [];
+    ['customerName','customerPhone','customerAddress'].forEach(k => els[k].value = '');
+    rerender();
+    switchTab('orders');
+    alert('Đặt hàng thành công!');
+  }
+
+  function switchTab(tab) {
+    const map = {
+      products: ['productsView'],
+      wishlist: ['wishlistView'],
+      orders: ['ordersView']
+    };
+    ['productsView','wishlistView','ordersView'].forEach(v => els[v].classList.add('hidden'));
+    map[tab].forEach(v => els[v].classList.remove('hidden'));
+
+    els.tabProducts.className = tab === 'products' ? 'active' : 'secondary';
+    els.tabWishlist.className = tab === 'wishlist' ? 'active' : 'secondary';
+    els.tabOrders.className = tab === 'orders' ? 'active' : 'secondary';
+  }
+
+  window.addToCart = addToCart;
+  window.removeFromCart = removeFromCart;
+  window.changeQty = changeQty;
+  window.toggleWishlist = toggleWishlist;
+  window.deleteProduct = deleteProduct;
+
+  ['searchInput','sortSelect','categoryFilter','priceMax','ratingFilter']
+    .forEach(id => els[id].addEventListener('input', rerender));
+
+  els.addProductBtn.addEventListener('click', addProduct);
+  els.checkoutBtn.addEventListener('click', checkout);
+  els.clearCartBtn.addEventListener('click', () => { cart = []; rerender(); });
+
+  els.tabProducts.addEventListener('click', () => switchTab('products'));
+  els.tabWishlist.addEventListener('click', () => switchTab('wishlist'));
+  els.tabOrders.addEventListener('click', () => switchTab('orders'));
+
+  rerender();
+</script>
+</body>
+</html>
