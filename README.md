@@ -359,3 +359,23 @@ This code repository is licensed under [the MIT License](LICENSE-CODE). The use 
 
 ## 9. Contact
 If you have any questions, please raise an issue or contact us at [service@deepseek.com](service@deepseek.com).
+
+## 10. Local Demo Pages (UI)
+If you want to preview the HTML demos locally, run a simple HTTP server from the repo root:
+
+```bash
+python3 -m http.server 8000 --bind 0.0.0.0 --directory .
+```
+
+Then open one of these URLs in your browser:
+
+- Demo index: `http://127.0.0.1:8000/demo/index.html`
+- Shopping demo: `http://127.0.0.1:8000/demo/trang-web-ban-hang-day-du.html`
+- Rental-management demo: `http://127.0.0.1:8000/demo/quan-ly-phong-tro-ui.html`
+
+You can also use the helper scripts:
+
+```bash
+./scripts/run_shop_demo.sh
+./scripts/run_quan_ly_phong_tro_demo.sh
+```
